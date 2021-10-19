@@ -1,3 +1,4 @@
+# Noted changes, lower distal burst std, higher proximal burst std
 def add_law_beta_drives(net, beta_start, strength=1.0):
     # Distal Drive
     weights_ampa_d1 = {'L2_basket': 0.00032 * strength, 'L2_pyramidal': 0.00008,
@@ -6,7 +7,7 @@ def add_law_beta_drives(net, beta_start, strength=1.0):
                      'L5_pyramidal': 0.5}
     net.add_bursty_drive(
         'beta_dist', tstart=beta_start, tstart_std=0., tstop=beta_start + 50.,
-        burst_rate=1., burst_std=10., numspikes=2, spike_isi=10, n_drive_cells=10,
+        burst_rate=1., burst_std=5., numspikes=2, spike_isi=10, n_drive_cells=10,
         location='distal', weights_ampa=weights_ampa_d1,
         synaptic_delays=syn_delays_d1, event_seed=20)
 
@@ -18,7 +19,7 @@ def add_law_beta_drives(net, beta_start, strength=1.0):
 
     net.add_bursty_drive(
         'beta_prox', tstart=beta_start, tstart_std=0., tstop=beta_start + 50.,
-        burst_rate=1., burst_std=20., numspikes=2, spike_isi=10, n_drive_cells=10,
+        burst_rate=1., burst_std=30., numspikes=2, spike_isi=10, n_drive_cells=10,
         location='proximal', weights_ampa=weights_ampa_p1,
         synaptic_delays=syn_delays_p1, event_seed=20)
 
@@ -58,3 +59,14 @@ def rescale_pyr_morph(net, cell_types, compartment_prop, scaling_factor, omit_co
             if section_name not in omit_compartment:
                 val = getattr(net.cell_types[cell_type].sections[section_name], compartment_prop)
                 setattr(net.cell_types[cell_type].sections[section_name], '_' + compartment_prop, val * scaling_factor)
+
+def rescale_pyr_mech(net, cell_types, compartment_mech, scaling_factor, omit_compartment=None):
+    if omit_compartment is not None:
+        omit_compartment = list()
+    for cell_type in cell_types:
+        for section_name in net.cell_types[cell_type].sections:
+            if section_name not in omit_compartment:
+                for key, item in compartment_mech:
+                    if key in net.cell_types[cell_type].sections[section_name].mechs:
+                        net.cell_types[cell_type].sections[section_name].mechs[key][
+                            item] = net.cell_types[cell_type].sections[section_name].mechs[key][item] / scaling_factor
