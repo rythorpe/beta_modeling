@@ -9,7 +9,7 @@ def add_law_beta_drives(net, beta_start, strength=1.0):
         'beta_dist', tstart=beta_start, tstart_std=0., tstop=beta_start + 50.,
         burst_rate=1., burst_std=5., numspikes=2, spike_isi=10, n_drive_cells=10,
         location='distal', weights_ampa=weights_ampa_d1,
-        synaptic_delays=syn_delays_d1, event_seed=20)
+        synaptic_delays=syn_delays_d1, event_seed=10)
 
     # Proximal Drive
     weights_ampa_p1 = {'L2_basket': 0.00004 * strength, 'L2_pyramidal': 0.00002,
@@ -21,7 +21,7 @@ def add_law_beta_drives(net, beta_start, strength=1.0):
         'beta_prox', tstart=beta_start, tstart_std=0., tstop=beta_start + 50.,
         burst_rate=1., burst_std=30., numspikes=2, spike_isi=10, n_drive_cells=10,
         location='proximal', weights_ampa=weights_ampa_p1,
-        synaptic_delays=syn_delays_p1, event_seed=20)
+        synaptic_delays=syn_delays_p1, event_seed=10)
 
     return net
 
