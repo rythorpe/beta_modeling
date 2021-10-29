@@ -1,3 +1,7 @@
+from functools import partial
+
+from matplotlib.pyplot import sca
+
 # Noted changes, lower distal burst std, higher proximal burst std
 def add_law_beta_drives(net, beta_start, strength=1.0):
     # Distal Drive
@@ -6,7 +10,7 @@ def add_law_beta_drives(net, beta_start, strength=1.0):
     syn_delays_d1 = {'L2_basket': 0.5, 'L2_pyramidal': 0.5,
                      'L5_pyramidal': 0.5}
     net.add_bursty_drive(
-        'beta_dist', tstart=beta_start, tstart_std=0., tstop=beta_start + 50.,
+        'Distal Drive', tstart=beta_start, tstart_std=0., tstop=beta_start + 50.,
         burst_rate=1., burst_std=5., numspikes=2, spike_isi=10, n_drive_cells=10,
         location='distal', weights_ampa=weights_ampa_d1,
         synaptic_delays=syn_delays_d1, event_seed=10)
@@ -18,7 +22,7 @@ def add_law_beta_drives(net, beta_start, strength=1.0):
                      'L5_basket': 1.0, 'L5_pyramidal': 1.0}
 
     net.add_bursty_drive(
-        'beta_prox', tstart=beta_start, tstart_std=0., tstop=beta_start + 50.,
+        'Proximal Drive', tstart=beta_start, tstart_std=0., tstop=beta_start + 50.,
         burst_rate=1., burst_std=30., numspikes=2, spike_isi=10, n_drive_cells=10,
         location='proximal', weights_ampa=weights_ampa_p1,
         synaptic_delays=syn_delays_p1, event_seed=10)
@@ -37,7 +41,7 @@ def add_supra_beta_drives(net, beta_start, strength=1.0):
     synaptic_delays_d1 = {'L2_basket': 0.1, 'L2_pyramidal': 0.1,
                         'L5_pyramidal': 0.1}
     net.add_evoked_drive(
-        'beta_dist', mu=beta_start, sigma=3.85, numspikes=1, weights_ampa=weights_ampa_d1,
+        'Distal Drive', mu=beta_start, sigma=3.85, numspikes=1, weights_ampa=weights_ampa_d1,
         weights_nmda=weights_nmda_d1, location='distal',
         synaptic_delays=synaptic_delays_d1, event_seed=4)
 
@@ -47,7 +51,7 @@ def add_supra_beta_drives(net, beta_start, strength=1.0):
     synaptic_delays_prox = {'L2_basket': 0.1, 'L2_pyramidal': 0.1,
                             'L5_basket': 1., 'L5_pyramidal': 1.}
     net.add_evoked_drive(
-        'beta_prox', mu=beta_start, sigma=8.33, numspikes=1,
+        'Proximal Drive', mu=beta_start, sigma=8.33, numspikes=1,
         weights_ampa=weights_ampa_p2, location='proximal',
         synaptic_delays=synaptic_delays_prox, event_seed=4)
 
@@ -68,5 +72,13 @@ def rescale_pyr_mech(net, cell_types, compartment_mech, scaling_factor, omit_com
             if section_name not in omit_compartment:
                 for key, item in compartment_mech:
                     if key in net.cell_types[cell_type].sections[section_name].mechs:
-                        net.cell_types[cell_type].sections[section_name].mechs[key][
-                            item] = net.cell_types[cell_type].sections[section_name].mechs[key][item] / scaling_factor
+                        mech = net.cell_types[cell_type].sections[section_name].mechs[key][item]
+                        if callable(mech):
+                            new_mech =  partial(function_division, f=mech, scaling_factor=scaling_factor)
+                        else: 
+                            new_mech = mech / scaling_factor
+                        net.cell_types[cell_type].sections[section_name].mechs[key][item] = new_mech
+
+def function_division(*args, f, scaling_factor):
+    """Returns function result divided by scaling factor"""
+    return f(*args) / scaling_factor
